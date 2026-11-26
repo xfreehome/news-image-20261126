@@ -35,6 +35,14 @@ const height = data.readUInt32BE(20);
 if (width > 1024 || height > 1024) {
   throw new Error(`entry.png is ${width}x${height}, over the 1024x1024 cap`);
 }
+// IHDR bit depth (offset 24) must be 8 and color type (offset 25) must be 2
+// (truecolor RGB), matching what the generator writes; a palette or
+// grayscale PNG would render differently for the judge.
+const bitDepth = data[24];
+const colorType = data[25];
+if (bitDepth !== 8 || colorType !== 2) {
+  throw new Error(`entry.png is bit depth ${bitDepth} color type ${colorType}, expected 8-bit RGB`);
+}
 
 const hashIn = createHash('sha256').update(data).digest('hex');
 mkdirSync(outDir, { recursive: true });
